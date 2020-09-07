@@ -16,11 +16,11 @@ import org.jsoup.select.Elements;
  */
 public class CrawlVbcp {
 
-    static final String DOWNLOAD_FOLDER = "D:/Documents/Others/van-ban/";
+    private static final String DOWNLOAD_FOLDER = "D:/Documents/Others/van-ban/";
 
-    static final int START_PAGE = 42;
+    private static final int START_PAGE = 1;
 
-    static final int END_PAGE = 60;
+    private static final int END_PAGE = 10;
 
     // Only download pdf file
     static void downloadFileFromUrl(String url) {
