@@ -4,8 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,25 +20,34 @@ public class CrawlVbcp_MultiThread {
 
     private static final int START_PAGE = 1;
 
-    private static final int END_PAGE = 10;
+    private static final int END_PAGE = 2;
 
     public static void main(String[] args) {
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+        ExecutorService executor = Executors.newFixedThreadPool(10);
 
         for (int i = START_PAGE; i <= END_PAGE; i++) {
-            System.out.println("Crawling at page " + i + "/" + END_PAGE);
             String url =
                     "http://vanban.chinhphu.vn/portal/page/portal/chinhphu/hethongvanban?_search=Tìm&_page="
                             + i;
             try {
                 Document doc = Jsoup.connect(url).get();
                 Elements listLinkElements = doc.select(".doc_list_link");
-                DownloadFileRunnable runnable = new DownloadFileRunnable(listLinkElements);
+                DownloadFileRunnable runnable =
+                        new DownloadFileRunnable(listLinkElements, i, END_PAGE);
                 executor.execute(runnable);
             } catch (Exception e) {
                 System.out.println("Error: " + e.getMessage());
             }
         }
+
+        executor.shutdown();
+
+        // Wait until all threads are finish
+        while (!executor.isTerminated()) {
+            // Running ...
+        }
+
+        System.out.println("Download done!");
     }
 
 }
@@ -49,12 +58,19 @@ public class CrawlVbcp_MultiThread {
  */
 class DownloadFileRunnable implements Runnable {
 
+    // Trang mà thread này sẽ download
+    private int currPage;
+
+    private int totalPage;
+
     private Elements listLinkElements;
 
     private static final String DOWNLOAD_FOLDER = "D:/Documents/Others/van-ban/";
 
-    public DownloadFileRunnable(Elements listLinkElements) {
+    public DownloadFileRunnable(Elements listLinkElements, int currPage, int totalPage) {
         this.listLinkElements = listLinkElements;
+        this.currPage = currPage;
+        this.totalPage = totalPage;
     }
 
     // Only download pdf file
@@ -80,6 +96,8 @@ class DownloadFileRunnable implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("Start crawling at page " + currPage + "/" + totalPage);
+
         for (Element ele : listLinkElements) {
             String pdfPage = ele.absUrl("href");
             Document doc2;
@@ -93,5 +111,7 @@ class DownloadFileRunnable implements Runnable {
                 System.out.println("Download error: " + e.getMessage());
             }
         }
+
+        System.out.println("Finish crawling at page " + currPage + "/" + totalPage);
     }
 }
