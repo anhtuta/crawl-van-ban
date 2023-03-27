@@ -22,7 +22,8 @@ public class DownloadSingleImage implements Runnable {
 
     @Override
     public void run() {
-        DownloadUtils.downloadFileFromUrl(url, folder, filename);
+        // DownloadUtils.downloadFileFromUrl(url, folder, filename);
+        DownloadUtils.downloadFileFromUrlWithParams(url, folder, "webp", filename);
     }
 
 }
